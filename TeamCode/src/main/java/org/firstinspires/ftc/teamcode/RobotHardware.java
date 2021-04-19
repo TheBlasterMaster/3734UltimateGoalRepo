@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -39,7 +40,8 @@ public class RobotHardware {
 
 
 
-    public void init() {
+    public void init(HardwareMap hwmp) {
+        HardwareMap hardwareMap = hwmp;
         //Obtain Hardware Refrences
         //--------------------------
         frontLeftDrive  = hardwareMap.get(DcMotor.class, "front_left");
@@ -95,6 +97,5 @@ public class RobotHardware {
         PIDCoefficients newPID = new PIDCoefficients(30,3,0);
         flyWheel.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODERS, newPID);
         
-        telemetry.addData("PID ", "" + pidOrig.p + " " + pidOrig.i + " " + pidOrig.d);
     }
 }

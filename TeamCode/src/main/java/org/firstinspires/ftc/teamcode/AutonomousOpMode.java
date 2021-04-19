@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Disabled
-class AutonomousOpMode extends LinearOpMode {
+public class AutonomousOpMode extends LinearOpMode {
     //ElaspedTime Object allows us to use Time (Unused in this program)
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -29,7 +29,7 @@ class AutonomousOpMode extends LinearOpMode {
 
     //The Autonomous Movement Command has been programmed to work with an array of motors so that it can work with
     //any amount of motors. The movement array is an array of all 4 of our drivetrain motors.
-    private AutonomousWheelMotor[] movement = {frontLeftDrive, frontRightDrive, backLeftDrive, backRightDrive};
+    private AutonomousWheelMotor[] movement;
 
     // --------- CONSTANTS
     //When a robot turns in place, its wheels trace a circle. The Diameter of the Circle is the distance between the wheels
@@ -45,7 +45,7 @@ class AutonomousOpMode extends LinearOpMode {
     //------
     @Override
     public void runOpMode() throws InterruptedException { 
-        robot.init();
+        robot.init(hardwareMap);
 
         robot.frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         robot.backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
@@ -59,10 +59,12 @@ class AutonomousOpMode extends LinearOpMode {
         backLeftDrive = new AutonomousWheelMotor(robot.backLeftDrive, 2240, 2.95276);
         backRightDrive = new AutonomousWheelMotor(robot.backRightDrive, 2240, 2.95276);
     
-    
+        AutonomousWheelMotor[] Tempmovement = {frontLeftDrive, frontRightDrive, backLeftDrive, backRightDrive};
+        
+        movement = Tempmovement;
         telemetry.addData("Status", "Initialized");
         
-        gripper.setPosition(0);
+        robot.gripper.setPosition(0);
         
         waitForStart();
 
@@ -220,7 +222,7 @@ class AutonomousOpMode extends LinearOpMode {
      */
     public void shoot(double power)
     {
-        robot.flywheel.setPower(-power);
+        robot.flyWheel.setPower(-power);
         sleep(5000);
         for(int i = 0;i < 3;i++)
         {
@@ -229,7 +231,7 @@ class AutonomousOpMode extends LinearOpMode {
             robot.trigger.setPosition(0.1);
             sleep(2000);
         }
-        robot.flywheel.setPower(0);
+        robot.flyWheel.setPower(0);
 
     }
     
