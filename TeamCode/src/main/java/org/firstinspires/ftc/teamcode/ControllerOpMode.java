@@ -1,5 +1,4 @@
 /* Copyright (c) 2017 FIRST. All rights reserved.
-/* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -81,6 +80,7 @@ public class ControllerOpMode extends OpMode
     private boolean lastDownDpad =false; //This allows us to determine first frame of input
     
     private int[] previousFlyWheelPositions = new int[20];
+    private double averageFlyWheelSpeed = 0;
     
     private double previousXStick = 0;
     private double previousYStick = 0;
@@ -93,8 +93,7 @@ public class ControllerOpMode extends OpMode
 
     @Override
     public void init() {
-        robot.init();
-
+        robot.init(hardwareMap);
         for(int i = 0; i<previousFlyWheelPositions.length;i++)
             previousFlyWheelPositions[i] = 0;
         
@@ -215,8 +214,8 @@ public class ControllerOpMode extends OpMode
         robot.top.enableLed(false);
 
         //COLOR SENSOR DATA
-        double[] bottomRGB = {bottom.red(), bottom.green(), bottom.blue()};
-        double[] topRGB = {top.red(), top.green(), top.blue()};
+        double[] bottomRGB = {robot.bottom.red(), robot.bottom.green(), robot.bottom.blue()};
+        double[] topRGB = {robot.top.red(), robot.top.green(), robot.top.blue()};
         
         bottomRGB = normalizeList(bottomRGB,255);
         topRGB = normalizeList(topRGB,255);
@@ -257,7 +256,6 @@ public class ControllerOpMode extends OpMode
         //TELEMETRY
         telemetry.addData("Stick Data", "X: %d, Y: %d", (int)(gamepad1.left_stick_x*100) , (int)(gamepad1.left_stick_y*100));
         telemetry.addData("Turn", "Right Stick: %d", (int)(gamepad1.right_stick_x*100));
-        telemetry.addData("Gripper State", "State: %d", gripperState);
         telemetry.addData("FlyWheel Speed", "Speed: %d", (int)(100*averageFlyWheelSpeed));
         telemetry.addData("Rings Detected", "Rings: %d ", rings);
     }
@@ -336,7 +334,7 @@ public class ControllerOpMode extends OpMode
         for(int i = 0; i<previousFlyWheelPositions.length-1; i++) // Slides down old values to insert new value
             previousFlyWheelPositions[i] = previousFlyWheelPositions[i+1];
         
-        previousFlyWheelPositions[previousFlyWheelPositions.length-1] = flyWheel.getCurrentPosition();
+        previousFlyWheelPositions[previousFlyWheelPositions.length-1] = robot.flyWheel.getCurrentPosition();
         
         double sum = 0;
         double averageFlyWheelSpeed;
