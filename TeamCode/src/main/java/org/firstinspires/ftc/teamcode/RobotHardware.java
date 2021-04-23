@@ -15,27 +15,39 @@ import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
 import java.util.Arrays;
 
 public class RobotHardware {
     // ------ HARDWARE
-    public DcMotor frontLeftDrive = null;
-    public DcMotor frontRightDrive = null;
-    public DcMotor backLeftDrive = null;
-    public DcMotor backRightDrive = null;
-    public DcMotor intakeMotor = null;
-    public DcMotor intakeMotor2 = null;
-    public DcMotorEx flyWheel = null;
-    public DcMotor wobbleArm = null;
+    public DcMotor frontLeftDrive;
+    public DcMotor frontRightDrive;
+    public DcMotor backLeftDrive;
+    public DcMotor backRightDrive;
+    public DcMotor intakeMotor;
+    public DcMotor intakeMotor2;
+    public DcMotorEx flyWheel;
+    public DcMotor wobbleArm;
 
-    public Servo trigger = null;
-    public Servo gripper = null;
-    public Servo funnel = null;
-    public Servo funnel_trigger = null;
-    public Servo funnel2 = null; 
+    public Servo trigger;
+    public Servo gripper;
+    public Servo funnel;
+    public Servo funnel_trigger;
+    public Servo funnel2; 
     
-    public ColorSensor top = null;
-    public ColorSensor bottom = null;
+    public ColorSensor top;
+    public ColorSensor bottom;
+
+    BNO055IMU imu;
     // ------
 
 
@@ -45,6 +57,8 @@ public class RobotHardware {
         HardwareMap hardwareMap = hwmp;
         //Obtain Hardware Refrences
         //--------------------------
+
+        //DRIVE TRAIN
         frontLeftDrive  = hardwareMap.get(DcMotor.class, "front_left");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right");
         backLeftDrive  = hardwareMap.get(DcMotor.class, "back_left");
@@ -56,6 +70,7 @@ public class RobotHardware {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
 
+        //INTAKE, SHOOTING, WOBBLE GOAL
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
         intakeMotor2 = hardwareMap.get(DcMotor.class, "intake2");
         flyWheel = (DcMotorEx)(hardwareMap.get(DcMotor.class, "flywheel"));
@@ -66,7 +81,7 @@ public class RobotHardware {
         flyWheel.setDirection(DcMotor.Direction.REVERSE);
         wobbleArm.setDirection(DcMotor.Direction.FORWARD);
 
-
+        //SERVOS
         funnel_trigger = hardwareMap.get(Servo.class, "funnel_trigger");
 
         trigger = hardwareMap.get(Servo.class, "trigger");
@@ -80,8 +95,21 @@ public class RobotHardware {
         funnel_trigger.setDirection(Servo.Direction.FORWARD);
         funnel2.setDirection(Servo.Direction.REVERSE);
         
+        //COLOR SENSORS
         top = hardwareMap.get(ColorSensor.class, "top");
         bottom = hardwareMap.get(ColorSensor.class, "bottom");
+
+        //IMU
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
         //=========================
         
         //Set Run Modes

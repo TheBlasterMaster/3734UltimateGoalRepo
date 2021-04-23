@@ -64,6 +64,14 @@ public class ControllerOpMode extends OpMode
     private final double triggerPos = 0.3; // Percentage of Full Turn Servo Makes to push ring into flywheel
     private final double triggerRest = 0.1; // Percentage of Full Turn Servo Rests at 
     private final double gripperPos = 0.3; // Percentage of Full Turn Gripper Makes to grab Wobble Goal
+
+    private final boolean globalMovementEnabled = true; //Movement inputs move the robot relatvie to field, not itself
+
+    private final double RED = -Math.PI/2;
+    private final double BLUE = Math.PI/2; 
+    private final double BEHIND = 0;
+    private final double fieldPerspective = BLUE;
+
  
     // ---- VARIABLES USED IN CALCULATIONS
     private boolean flutterTriggerActive = false;
@@ -85,6 +93,9 @@ public class ControllerOpMode extends OpMode
     private double previousXStick = 0;
     private double previousYStick = 0;
     private double maxChange = 0.4;
+
+    Orientation angles;
+    Acceleration acceleration;
     //------
 
     //HARDWARE AND TIME
@@ -213,6 +224,10 @@ public class ControllerOpMode extends OpMode
         robot.bottom.enableLed(false);
         robot.top.enableLed(false);
 
+        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        gravity  = imu.getLinearAccelertaion();
+
+
         //COLOR SENSOR DATA
         double[] bottomRGB = {robot.bottom.red(), robot.bottom.green(), robot.bottom.blue()};
         double[] topRGB = {robot.top.red(), robot.top.green(), robot.top.blue()};
@@ -227,6 +242,13 @@ public class ControllerOpMode extends OpMode
         int dPadInputStrafe = ((gamepad1.dpad_right)? 1:0) - ((gamepad1.dpad_left)? 1:0);
         double leftStickx = Math.min(gamepad1.left_stick_x + dPadInputStrafe,1);
         double leftSticky = gamepad1.left_stick_y;
+        double rightStickx;
+
+        if(gamepad1.left_bumper){
+            rightStickx  = turningPLoop();
+        }
+        else   
+            rightStickx = gamepad1.right_stick_x;
         
         //Input Dampening - IGNORE, ITS USELESS
         //---------
@@ -241,15 +263,15 @@ public class ControllerOpMode extends OpMode
             
             previousXStick = leftStickx;
             previousYStick = leftSticky;
-        //---------
+        //-----------------------------------
         
         if(gamepad1.b || gamepad1.x || gamepad1.left_trigger > 0.1){ //Slow Down Movement Speed if B is held Down
             turnSensitvity = 0.5;
-            moveRobot(leftStickx * buildModeSensitivity, leftSticky * buildModeSensitivity,gamepad1.right_stick_x * turnSensitvity);
+            moveRobot(leftStickx * buildModeSensitivity, leftSticky * buildModeSensitivity, rightStickx * turnSensitvity);
         }
         else{
             turnSensitvity = 1;
-            moveRobot(leftStickx, leftSticky , gamepad1.right_stick_x * turnSensitvity);
+            moveRobot(leftStickx, leftSticky , rightStickx * turnSensitvity);
         }
         //------------------------------------
         
@@ -267,7 +289,8 @@ public class ControllerOpMode extends OpMode
     public void stop() {
     }
 
-    // PRIVATE METHODS
+    // METHODS
+    //----------------
 
     /**
      * Sets Appropriate Power Amounts to Wheels
@@ -277,9 +300,13 @@ public class ControllerOpMode extends OpMode
      */
      private void moveRobot(double xComponent,double yComponent, double turn){
         double r = controllerInputAdjustment( Math.hypot(xComponent, yComponent) );
-        telemetry.addData("Radius", "R: %d", (int)(r*100));
-        double robotAngle = -Math.atan2(xComponent,yComponent) + Math.PI/4 + Math.PI;
-        
+        //telemetry.addData("Radius", "R: %d", (int)(r*100));
+        double robotAngle;
+        if(globalMovementEnabled)
+            robotAngle = Math.atan2(xComponent,yComponent) + Math.PI/4 + angles.getFirstAngle + fieldPerspective;
+        else
+            robotAngle = -Math.atan2(xComponent,yComponent) + Math.PI/4 + Math.PI;
+
         double turnAmount = turn*turnSensitvity;
         double[] input = {r*Math.cos(robotAngle),
                           r*Math.sin(robotAngle),
@@ -344,5 +371,15 @@ public class ControllerOpMode extends OpMode
         }
         
         averageFlyWheelSpeed = sum/(previousFlyWheelPositions.length-1);
+    }
+
+    private double turningPLoop(){
+        double currentAngle = angles.firstAngle;
+        if (currentAngle < 0){
+            return Math.max(0.2,currentAngle * 0.31830988618);
+        }
+        else{
+            return Math.min(-0.2,-currentAngle * 0.31830988618);
+        }
     }
 }
